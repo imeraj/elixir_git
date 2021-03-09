@@ -3,13 +3,10 @@ defmodule Egit.Database do
   An Elixir implementation of Git version control system
   """
 
-  alias Egit.{BLOB, Helpers}
+  alias Egit.Helpers
 
   def store(object) do
-    string = BLOB.to_s(object)
-    content = "#{BLOB.type(object)} #{byte_size(string)}\0#{string}"
-    object = %{object | oid: :crypto.hash(:sha, content) |> Base.encode16()}
-    write_object(object.oid, content)
+    write_object(object.oid, object.content)
   end
 
   defp write_object(oid, content) do

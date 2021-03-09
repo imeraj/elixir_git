@@ -53,6 +53,8 @@ defmodule Egit.CLI do
   end
 
   defp process({:commit, dir}) do
-    Egit.Commit.commit(dir)
+    author = System.get_env("EGIT_AUTHOR_NAME")
+    email = System.get_env("EGIT_AUTHOR_EMAIL")
+    Egit.Commit.commit(dir, %{name: author, email: email})
   end
 end

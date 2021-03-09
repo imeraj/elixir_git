@@ -1,9 +1,9 @@
-defmodule Egit.BLOB do
+defmodule Egit.Types.BLOB do
   @moduledoc """
   An Elixir implementation of Git version control system
   """
 
-  defstruct data: nil, oid: nil
+  defstruct data: nil, oid: nil, content: nil
 
   def type(_blob) do
     "blob"
