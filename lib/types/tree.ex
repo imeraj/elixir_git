@@ -16,7 +16,7 @@ defmodule Egit.Types.Tree do
       Enum.sort_by(tree.entries, & &1.name)
       |> Enum.map(fn entry ->
         {:ok, oid} = Base.decode16(entry.oid, case: :lower)
-        "#{@mode} #{entry.name}\0" <>  oid
+        "#{@mode} #{entry.name}\0" <> oid
       end)
 
     Enum.join(entries, "")

@@ -8,8 +8,15 @@ defmodule Egit.Helpers do
     |> Path.join(".git")
   end
 
-  def db_path(git_path) do
-    git_path
+  def head_path(root_path) do
+    root_path
+    |> git_path()
+    |> Path.join("HEAD")
+  end
+
+  def db_path(root_path) do
+    root_path
+    |> git_path()
     |> Path.join("objects")
   end
 

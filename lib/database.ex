@@ -6,14 +6,18 @@ defmodule Egit.Database do
   alias Egit.Helpers
 
   def store(object) do
-    write_object(object.oid, object.content)
+    unless File.exists?(object_path(object.oid)) do
+      write_object(object_path(object.oid), object.content)
+    end
   end
 
-  defp write_object(oid, content) do
+  defp object_path(oid) do
     {:ok, dir} = File.cwd()
     db_path = db_path(dir)
+    Path.join([db_path, String.slice(oid, 0..1), String.slice(oid, 2..-1)])
+  end
 
-    object_path = Path.join([db_path, String.slice(oid, 0..1), String.slice(oid, 2..-1)])
+  defp write_object(object_path, content) do
     dir_name = Path.dirname(object_path)
     temp_path = Path.join([dir_name, generate_temp_name()])
 
@@ -39,7 +43,7 @@ defmodule Egit.Database do
   end
 
   defp db_path(root_path) do
-    Helpers.git_path(root_path)
+    root_path
     |> Helpers.db_path()
   end
 
