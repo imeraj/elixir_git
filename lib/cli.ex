@@ -17,7 +17,6 @@ defmodule Egit.CLI do
   end
 
   defp args_to_internal_representation(["init", dir]) do
-    dir |> Path.expand()
     {:init, dir}
   end
 

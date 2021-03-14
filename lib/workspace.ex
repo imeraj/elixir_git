@@ -13,4 +13,14 @@ defmodule Egit.Workspace do
     Enum.map(list, fn path -> Helpers.ls_r(path) end)
     |> List.flatten()
   end
+
+  def stat_file(path) do
+    case File.stat(path) do
+      {:ok, stat} ->
+        stat
+
+      {:error, reason} ->
+        IO.puts(:stderr, "stat failed - #{reason}")
+    end
+  end
 end
