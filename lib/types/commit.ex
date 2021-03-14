@@ -11,14 +11,19 @@ defmodule Egit.Types.Commit do
     "commit"
   end
 
-  def to_s(commit) do
-    lines = [
-      "tree #{commit.tree.oid}",
-      "author " <> Author.to_s(commit.author),
-      "committer " <> Author.to_s(commit.author),
-      "",
-      commit.message
-    ]
+  def to_s(commit, parent \\ nil) do
+    lines = Enum.concat([], ["tree #{commit.tree.oid}"])
+
+    lines =
+      case parent do
+        nil -> lines
+        _ -> Enum.concat(lines, ["parent #{parent}"])
+      end
+
+    lines = Enum.concat(lines, ["author " <> Author.to_s(commit.author)])
+    lines = Enum.concat(lines, ["committer " <> Author.to_s(commit.author)])
+    lines = Enum.concat(lines, [""])
+    lines = Enum.concat(lines, [commit.message])
 
     Enum.join(lines, "\n")
   end

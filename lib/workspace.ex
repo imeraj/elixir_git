@@ -5,8 +5,10 @@ defmodule Egit.Workspace do
 
   alias Egit.Helpers
 
+  @ignore_path [".git"]
+
   def list_files do
-    list = Path.wildcard("./*")
+    list = Path.wildcard("./*", match_dot: true) -- @ignore_path
 
     Enum.map(list, fn path -> Helpers.ls_r(path) end)
     |> List.flatten()
