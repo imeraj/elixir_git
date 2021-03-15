@@ -3,7 +3,7 @@ defmodule Egit.Types.Tree do
   An Elixir implementation of Git version control system
   """
 
-  @mode "100644"
+  alias Egit.Types.Entry
 
   defstruct entries: nil, oid: nil, content: nil
 
@@ -16,7 +16,7 @@ defmodule Egit.Types.Tree do
       Enum.sort_by(tree.entries, & &1.name)
       |> Enum.map(fn entry ->
         {:ok, oid} = Base.decode16(entry.oid, case: :lower)
-        "#{@mode} #{entry.name}\0" <> oid
+        "#{Entry.mode(entry)} #{entry.name}\0" <> oid
       end)
 
     Enum.join(entries, "")

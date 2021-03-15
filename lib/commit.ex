@@ -18,7 +18,7 @@ defmodule Egit.Commit do
             {:ok, data} ->
               blob = build_blob(data)
               Database.store(blob)
-              %Entry{name: path, oid: blob.oid}
+              %Entry{name: path, oid: blob.oid, stat: Workspace.stat_file(path)}
 
             {:error, _} ->
               nil
