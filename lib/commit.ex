@@ -31,8 +31,6 @@ defmodule Egit.Commit do
       Layout.build(entries)
       |> traverse()
 
-    Database.store(root)
-
     author = %Author{name: config.name, email: config.email, time: DateTime.utc_now()}
     commit = build_commit(author, root, parent)
     Database.store(commit)
@@ -56,8 +54,12 @@ defmodule Egit.Commit do
         {name, new_root}
       end)
 
-    Map.replace!(root, :entries, new_entries)
-    |> Tree.build_content()
+    new_root =
+      Map.replace!(root, :entries, new_entries)
+      |> Tree.build_content()
+
+    Database.store(new_root)
+    new_root
   end
 
   defp traverse(root), do: root
