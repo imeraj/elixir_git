@@ -5,7 +5,7 @@ defmodule Egit.Types.Tree do
 
   alias Egit.Types.Entry
 
-  defstruct entries: nil, oid: nil, content: nil
+  defstruct entries: %{}, oid: nil, content: nil
 
   def type(_tree) do
     "tree"
@@ -13,12 +13,30 @@ defmodule Egit.Types.Tree do
 
   def to_s(tree) do
     entries =
-      Enum.sort_by(tree.entries, & &1.name)
-      |> Enum.map(fn entry ->
+      tree.entries
+      |> Enum.map(fn {name, entry} ->
         {:ok, oid} = Base.decode16(entry.oid, case: :lower)
-        "#{Entry.mode(entry)} #{entry.name}\0" <> oid
+
+        case entry do
+          %Egit.Types.Tree{} = _ ->
+            "#{Entry.dir_mode()} #{name}\0" <> oid
+
+          %Entry{} = entry ->
+            "#{Entry.mode(entry)} #{name}\0" <> oid
+        end
       end)
 
     Enum.join(entries, "")
+  end
+
+  def build_content(object = %Egit.Types.Tree{}) do
+    string = to_s(object)
+    content = "#{type(object)} #{byte_size(string)}\0#{string}"
+    oid = String.downcase(:crypto.hash(:sha, content) |> Base.encode16())
+    %Egit.Types.Tree{entries: object.entries, content: content, oid: oid}
+  end
+
+  def build_content(entry = %Entry{}) do
+    entry
   end
 end
