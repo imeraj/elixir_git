@@ -4,7 +4,7 @@ defmodule Egit.Commit do
   """
 
   alias Egit.{Workspace, Database, Helpers}
-  alias Egit.Types.{BLOB, Tree, Entry, Author, Commit, Refs}
+  alias Egit.Types.{BLOB, Tree, Entry, Author, Commit, Refs, Layout}
 
   def commit(root_path, config) do
     head_path = root_path |> Helpers.head_path()
@@ -27,11 +27,12 @@ defmodule Egit.Commit do
       )
       |> Enum.reject(&is_nil/1)
 
-    tree = build_tree(entries)
-    Database.store(tree)
+    root =
+      Layout.build(entries)
+      |> traverse()
 
     author = %Author{name: config.name, email: config.email, time: DateTime.utc_now()}
-    commit = build_commit(author, tree, parent)
+    commit = build_commit(author, root, parent)
     Database.store(commit)
 
     Refs.update_head(head_path, commit.oid)
@@ -45,7 +46,25 @@ defmodule Egit.Commit do
     IO.puts("[#{message}#{commit.oid}] #{commit.message}")
   end
 
-  def build_blob(data) do
+  defp traverse(root = %Tree{}) do
+    new_entries =
+      Map.new(root.entries, fn {name, entry} ->
+        new_root = Tree.build_content(traverse(entry))
+        Database.store(new_root)
+        {name, new_root}
+      end)
+
+    new_root =
+      Map.replace!(root, :entries, new_entries)
+      |> Tree.build_content()
+
+    Database.store(new_root)
+    new_root
+  end
+
+  defp traverse(root), do: root
+
+  defp build_blob(data) do
     object = %BLOB{data: data}
     string = BLOB.to_s(object)
     content = "#{BLOB.type(object)} #{byte_size(string)}\0#{string}"
@@ -53,15 +72,7 @@ defmodule Egit.Commit do
     %{object | content: content}
   end
 
-  def build_tree(entries) do
-    object = %Tree{entries: entries}
-    string = Tree.to_s(object)
-    content = "#{Tree.type(object)} #{byte_size(string)}\0#{string}"
-    object = %{object | oid: String.downcase(:crypto.hash(:sha, content) |> Base.encode16())}
-    %{object | content: content}
-  end
-
-  def build_commit(author, tree, parent) do
+  defp build_commit(author, tree, parent) do
     message = IO.gets("Enter commit message: \n")
 
     object = %Commit{
