@@ -20,6 +20,11 @@ defmodule Egit.Helpers do
     |> Path.join("objects")
   end
 
+  def index_path(git_path) do
+    git_path
+    |> Path.join("index")
+  end
+
   def ls_r(path \\ ".") do
     cond do
       File.regular?(path) ->
@@ -42,5 +47,11 @@ defmodule Egit.Helpers do
       index = :rand.uniform(byte_size(@bytes)) - 1
       <<:binary.at(@bytes, index)>>
     end
+  end
+
+  def datetime_to_seconds(datetime) do
+    {:ok, native} = NaiveDateTime.from_erl(datetime)
+    {:ok, utc} = DateTime.from_naive(native, "Etc/UTC")
+    DateTime.to_unix(utc)
   end
 end

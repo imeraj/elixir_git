@@ -11,7 +11,7 @@ defmodule Egit.CLI do
 
   defp parse_args(argv) do
     argv
-    |> OptionParser.parse(strict: [init: :string, commit: :string])
+    |> OptionParser.parse(strict: [init: :string, commit: :string, add: :string])
     |> elem(1)
     |> args_to_internal_representation()
   end
@@ -35,15 +35,25 @@ defmodule Egit.CLI do
     end
   end
 
+  defp args_to_internal_representation(["add" | path]) do
+    if File.exists?(".git") do
+      {:add, path}
+    else
+      IO.puts(:stderr, "fatal: not a git repository")
+      exit(:fatal)
+    end
+  end
+
   defp args_to_internal_representation(command) do
     {:help, command}
   end
 
-  defp process({:help, command}) do
-    IO.puts(:stderr, "egit: '#{command}' is not a egit command.")
-
+  defp process({:help, _command}) do
     IO.puts(:stderr, """
-    usage: egit init [dir]
+    usage: egit help
+           egit init [dir]
+           egit commit
+           egit add <filename(s)|dir(s)>
     """)
   end
 
@@ -55,5 +65,9 @@ defmodule Egit.CLI do
     author = System.get_env("EGIT_AUTHOR_NAME")
     email = System.get_env("EGIT_AUTHOR_EMAIL")
     Egit.Commit.commit(dir, %{name: author, email: email})
+  end
+
+  defp process({:add, path}) do
+    Egit.Add.add(path)
   end
 end

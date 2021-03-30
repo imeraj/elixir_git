@@ -7,11 +7,17 @@ defmodule Egit.Workspace do
 
   @ignore_path [".git"]
 
-  def list_files do
-    list = Path.wildcard("./*", match_dot: true) -- @ignore_path
+  def list_files(path \\ ".") do
+    cond do
+      File.regular?(path) ->
+        [path]
 
-    Enum.map(list, fn path -> Helpers.ls_r(path) end)
-    |> List.flatten()
+      true ->
+        list = Path.wildcard(Path.join(path, "/*"), match_dot: true) -- @ignore_path
+
+        Enum.map(list, fn path -> Helpers.ls_r(path) end)
+        |> List.flatten()
+    end
   end
 
   def stat_file(path) do
@@ -21,6 +27,17 @@ defmodule Egit.Workspace do
 
       {:error, reason} ->
         IO.puts(:stderr, "stat failed - #{reason}")
+    end
+  end
+
+  def read_file(path) do
+    case File.exists?(path) do
+      true ->
+        {:ok, data} = File.read(path)
+        data
+
+      false ->
+        nil
     end
   end
 end
